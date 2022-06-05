@@ -2913,16 +2913,43 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
   }, "default");
 
   // code/main.js
-  no();
-  loadSprite("bean", "sprites/bean.png");
-  add([
-    sprite("bean"),
-    pos(500, 400),
-    area()
-  ]);
-  onClick(() => {
-    addKaboom(mousePos());
+  no({
+    fullscreen: true,
+    global: true,
+    scale: 1,
+    debug: true,
+    background: [0, 0, 0, 1]
   });
-  onKeyPress("b", burp);
+  loadRoot("sprites/");
+  loadSprite("coin", "coin.png");
+  loadSprite("evil-shroom", "evil-shroom.png");
+  loadSprite("brick", "brick.png");
+  loadSprite("block", "block.png");
+  loadSprite("mario", "mario.png");
+  loadSprite("mushroom", "mushroom.png");
+  loadSprite("surprised", "surprised.png");
+  loadSprite("unboxed", "unboxed.png");
+  loadSprite("pipe-top-left", "pipe-top-left.png");
+  loadSprite("pipe-top-right", "pipe-top-right.png");
+  loadSprite("pipe-bottom-left", "pipe-bottom-left.png");
+  loadSprite("pipe-bottom-right", "pipe-bottom-right.png");
+  var map = [
+    "                                                                    ",
+    "                                                                    ",
+    "                                                                    ",
+    "                                                                    ",
+    "                                                                    ",
+    "                                                                    ",
+    "                                                                    ",
+    "=====================================================   ============"
+  ];
+  var levelConfig = {
+    width: 20,
+    height: 20,
+    "=": () => {
+      [sprite("block"), area(), solid()];
+    }
+  };
+  var level = addLevel(map, levelConfig);
 })();
 //# sourceMappingURL=game.js.map

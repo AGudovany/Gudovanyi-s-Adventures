@@ -20,7 +20,7 @@ multiplayer(server);
 // build user game
 function buildGame() {
 
-	const template = fs.readFileSync("template.html", "utf-8");
+	const template = fs.readFileSync("main.html", "utf-8");
 	let code = "";
 
 	code += `<script src="/dist/helper.js"></script>\n`;
@@ -34,7 +34,7 @@ function buildGame() {
 			sourcemap: true,
 			target: "es6",
 			keepNames: true,
-			logLevel: "silent",
+			logLevel: "debug",
 			entryPoints: ["code/main.js"],
 			outfile: "dist/game.js",
 		});
@@ -148,7 +148,9 @@ app.delete("/db/:item", async (req, res) => {
 
 app.use(express.static(__dirname));
 
-server.listen(port);
+server.listen(port, () => {
+	console.log("Started server on " + port);
+});
 
 // term output
 const red = (msg) => `\x1b[31m${msg}\x1b[0m`;
