@@ -1,93 +1,117 @@
-import kaboom from "kaboom"
+import kaboom from "kaboom";
 
 // initialize context
-kaboom({
-	fullscreen: true,
-	global: true,
-	scale: 1,
-	debug: true,
-	background: [128, 128, 128]
-})
-
-const moveSpeed = 120;
-const jumpForce = 500;
+kaboom();
 
 // load assets
-loadRoot("sprites/")
-loadSprite("coin", "coin.png")
-loadSprite("evil-shroom", "evil-shroom.png")
-loadSprite("brick", "brick.png")
-loadSprite("block", "block.png")
-loadSprite("mario", "mario.png")
-loadSprite("mushroom", "mushroom.png")
-loadSprite("surprise", "surprised.png")
-loadSprite("unboxed", "unboxed.png")
-loadSprite("pipe-top-left", "pipe-top-left.png")
-loadSprite("pipe-top-right", "pipe-top-right.png")
-loadSprite("pipe-bottom-left", "pipe-bottom-left.png")
-loadSprite("pipe-bottom-right", "pipe-bottom-right.png")
-loadSprite("airplane", "airplane.png")
-loadSprite("ukrFlag", "ukraine-flag.png")
-loadSprite("Danya", "Danya.jpeg")
+loadSprite("birdy", "sprites/birdy.png");
+loadSprite("bg", "sprites/bg.png");
+loadSprite("pipe", "sprites/pipe.png");
+loadSprite("brick", "sprites/brick.png");
+loadSound("wooosh", "sounds/wooosh.mp3");
+
+let highScore = 0;
 
 scene("game", () => {
-	layers(['bg', 'game', 'ui'], 'game');
+  const PIPE_GAP = 120;
+  let score = 0;
 
-	const map = [
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=                                                          =',
-		'=           ==                                             =',
-		'=               ~                                          =',
-		'=      |                                 $$                =',
-		'============================================================'
-	];
+  add([
+    sprite("bg", {width: width(), height: height()})
+  ]);
 
-	const levelConfig = {
-		width: 20,
-		height: 20,
-		'=': () => [sprite('block'), area(), solid()],
-		'~': () => [sprite('airplane'), area(), solid(), scale(0.3), pos(0, -80)],
-		'$': () => [sprite('coin')],
-		'%': () => [sprite('surprise'), area(), solid(), 'coin-surprise'],
-		'*': () => [sprite('surprise'), area(), solid(), 'mushroom-surprise'],
-		'-': () => [sprite('unboxed')],
-		'(': () => [sprite('pipe-top-left'), scale(0.5), area(), solid()],
-		')': () => [sprite('pipe-top-right'), scale(0.5), area(), solid()],
-		'{': () => [sprite('pipe-bottom-left'), scale(0.5), area(), solid()],
-		'}': () => [sprite('pipe-bottom-right'), scale(0.5), area(), solid()],
-		'^': () => [sprite('evil-shroom')],
-		'#': () => [sprite('mashroom')],
-		'|': () => [sprite('ukrFlag'), scale(0.2), pos(0, -70)],
-	};
-	const level = addLevel(map, levelConfig);
+  const scoreText = add([
+    text(score, {size: 50})
+  ]);
 
-	const player = add([
-		sprite('Danya'), solid(), area(), scale(0.2),
-		pos(60, 0),
-		body(),
-		origin('bot')
-	]);
+  // add a game object to screen
+  const player = add([
+    // list of components
+    sprite("birdy"),
+    scale(2),
+    pos(80, 40),
+    area(),
+    body(),
+  ]);
 
-	keyDown('left', () => {
-		player.move(-moveSpeed, 0)
-	})
+  function producePipes(){
+    const offset = rand(-50, 50);
 
-	keyDown('right', () => {
-		player.move(moveSpeed, 0)
-	})
+    add([
+      sprite("pipe"),
+      pos(width(), height()/2 + offset + PIPE_GAP/2),
+      "pipe",
+      area(),
+      {passed: false}
+    ]);
 
-	keyDown('space', () => {
-		if (player.isGrounded()) {
-			player.jump(jumpForce);
-		}
-	})
-})
+    add([
+      sprite("pipe", {flipY: true}),
+      pos(width(), height()/2 + offset - PIPE_GAP/2),
+      origin("botleft"),
+      "pipe",
+      area()
+    ]);
+  }
+
+  loop(1.5, () => {
+    producePipes();
+  });
+
+  
+for (i = 0; i <= width(); i++) {
+  add([
+      sprite("brick"),
+      pos(i, height()-20),
+      "brick",
+      area(),
+    solid()
+    ]);
+}
+
+  action("pipe", (pipe) => {
+    pipe.move(-160, 0);
+
+    if (pipe.passed === false && pipe.pos.x < player.pos.x) {
+      pipe.passed = true;
+      score += 1;
+      scoreText.text = score;
+    }
+  });
+
+  player.collides("pipe", () => {
+    go("gameover", score);
+  });
+
+  player.action(() => {
+    if (player.pos.y > height() + 30 || player.pos.y < -30) {
+      go("gameover", score);
+    }
+  });
+
+  keyPress("space", () => {
+    play("wooosh");
+    player.jump(400);
+  });
+});
+
+scene("gameover", (score) => {
+  if (score > highScore) {
+    highScore = score;
+  }
+
+  add([
+    text(
+      "gameover!\n"
+      + "score: " + score
+      + "\nhigh score: " + highScore,
+      {size: 45}
+    )
+  ]);
+
+  keyPress("space", () => {
+    go("game");
+  });
+});
 
 go("game");
