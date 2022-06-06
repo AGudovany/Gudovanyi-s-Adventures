@@ -6,6 +6,11 @@ kaboom();
 // load assets
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("score", "sounds/score.mp3");
+loadSound("train-depart", "sounds/train-depart.mp3");
+loadSound("airplane-fly-over", "sounds/airplane-fly-over.mp3");
+loadSound("explosion", "sounds/explosion.mp3");
+loadSound("laugh", "sounds/laugh.mp3");
+loadSound("hit", "sounds/hit.mp3");
 
 loadRoot("sprites/");
 loadSprite("birdy", "birdy.png");
@@ -19,6 +24,10 @@ loadSprite("skeleton", "skeleton.png");
 loadSprite("train", "train.png");
 loadSprite("boom", "boom.png");
 loadSprite("airplane", "airplane.png");
+loadSprite("booba-runs", "booba-runs.png")
+loadSprite("booba-play", "booba-play.png")
+loadSprite("fuse", "fuse.png")
+loadSprite("fuse-smashing", "fuse-smashing.png")
 
 let highScore = 0;
 
@@ -31,7 +40,8 @@ scene("game", (choosenPlayer) => {
   ]);
 
   const scoreText = add([
-    text(score, {size: 50})
+    text(score, {size: 50}),
+      pos(0, 20)
   ]);
 
   // add a game object to screen
@@ -69,7 +79,7 @@ scene("game", (choosenPlayer) => {
   }
 
   function produceCoins(){
-    const offset = rand(40, 600);
+    const offset = rand(100, 600);
 
     add([
       sprite("coin"),
@@ -78,27 +88,55 @@ scene("game", (choosenPlayer) => {
       "move",
       "score",
       area(),
+      scale(0.05),
       {passed: false},
       cleanup()
     ]);
   }
 
   function produceSkeleton(){
+    const offset = rand(130, 600);
     add([
       sprite("skeleton", {flipX: true}),
-      pos(width()-20, height()-90),
+      pos(width()-20, height()-  offset),
       "skeleton",
       "move",
       area(),
-        scale(0.28),
+        scale(0.4),
       {passed: false},
     ]);
+  }
+
+  function produceBooba(){
+    const offset = rand(150, 600);
+    if (choosenPlayer == 1) {
+      add([
+        sprite("booba-play"),
+        pos(width() - 20, height() - offset),
+        "booba",
+        "move",
+        area(),
+        scale(0.3),
+        {passed: false},
+      ]);
+    } else {
+      add([
+        sprite("fuse", {flipX: true}),
+        pos(width() - 20, height() - offset),
+        "booba",
+        "move",
+        area(),
+        scale(0.15),
+        {passed: false},
+      ]);
+    }
   }
 
   function produceTrain(){
     if (!trainExists) {
       trainExists = true;
       if (choosenPlayer == 1) {
+        play("train-depart");
         add([
           sprite("train"),
           pos(width() - 20, height() - 430),
@@ -108,6 +146,7 @@ scene("game", (choosenPlayer) => {
           scale(1),
         ]);
       } else {
+        play("airplane-fly-over");
         add([
           sprite("airplane", {flipX: true}),
           pos(width() - 20, height() - 430),
@@ -120,9 +159,9 @@ scene("game", (choosenPlayer) => {
   }
 
   loop(1.5, () => {
-    let funcNumber = randi(1, 4);
+    let funcNumber = randi(1, 5);
     if (score >= 200) {
-      funcNumber = 4;
+      funcNumber = 5;
     }
     switch (funcNumber) {
       case 1:
@@ -135,6 +174,9 @@ scene("game", (choosenPlayer) => {
         produceSkeleton();
         break;
       case 4:
+        produceBooba();
+        break;
+      case 5:
         produceTrain();
         break;
     }
@@ -167,10 +209,11 @@ onCollide("player", "score", (player, coin) => {
 onCollide("player", "skeleton", (player, skeleton) => {
   let boom = add([
     sprite("boom"),
-    pos(150, height()-120),
+    pos(skeleton.pos.x, skeleton.pos.y),
     area(),
       scale(0.08),
   ]);
+  play("explosion");
   skeleton.destroy();
   wait(0.5, () => {boom.destroy()})
 });
@@ -207,6 +250,51 @@ onCollide("player", "train", (player, train) => {
       //player.move(160, 0);
     });
   })
+});
+
+onCollide("player", "booba", (player, booba) => {
+  booba.destroy()
+  if (choosenPlayer == 1) {
+    play("laugh");
+    add([
+      sprite("booba-runs"),
+      "booba-runs",
+      pos(booba.pos.x, booba.pos.y),
+      area(),
+      scale(0.4),
+    ]);
+    action("booba-runs", (item) => {
+      item.move(200, 0);
+    });
+  } else {
+    let x = rand(200, width()-200);
+    let y = rand(height()-150, height()-600);
+    play("hit");
+    const smash = add([
+      sprite("fuse-smashing"),
+      area(),
+      pos(x, y),
+      scale(0.5),
+    ]);
+    const boom = add([
+      sprite("boom"),
+      area(),
+      pos(x, y),
+      scale(0.08),
+    ]);
+    wait(0.8, () => {
+      x = rand(200, width()-50);
+      play("hit");
+      smash.pos.x = x;
+      boom.pos.x = x+150;
+      smash.flipX(true);
+      boom.flipX(true);
+      wait(0.8, () => {
+        smash.destroy();
+        boom.destroy();
+      })
+    });
+  }
 });
 
   action("move", (item) => {
@@ -252,6 +340,7 @@ scene("gameover", (score) => {
 });
 
 scene("intro", (score) => {
+
   add([
     text(
         "Choose Hero!\n"
@@ -266,6 +355,7 @@ scene("intro", (score) => {
   keyPress("2", () => {
     go("game", 2);
   });
+
 });
 
 go("intro");
