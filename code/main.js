@@ -21,9 +21,9 @@ loadSprite("boom", "boom.png");
 loadSprite("airplane", "airplane.png");
 
 let highScore = 0;
-let trainExists = false;
 
 scene("game", (choosenPlayer) => {
+  let trainExists = false;
   let score = 0;
 
   add([
@@ -69,7 +69,7 @@ scene("game", (choosenPlayer) => {
   }
 
   function produceCoins(){
-    const offset = rand(40, 150);
+    const offset = rand(40, 600);
 
     add([
       sprite("coin"),
@@ -121,7 +121,7 @@ scene("game", (choosenPlayer) => {
 
   loop(1.5, () => {
     let funcNumber = randi(1, 4);
-    if (score > 100) {
+    if (score >= 10) {
       funcNumber = 4;
     }
     switch (funcNumber) {
@@ -148,6 +148,13 @@ for (let i = 0; i <= width(); i= i+20) {
       area(),
     solid()
     ]);
+  add([
+    sprite("brick"),
+    pos(i, 0),
+    "brick",
+    area(),
+    solid()
+  ]);
 }
 
 onCollide("player", "score", (player, coin) => {
