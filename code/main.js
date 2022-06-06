@@ -121,7 +121,7 @@ scene("game", (choosenPlayer) => {
 
   loop(1.5, () => {
     let funcNumber = randi(1, 4);
-    if (score >= 10) {
+    if (score >= 200) {
       funcNumber = 4;
     }
     switch (funcNumber) {
